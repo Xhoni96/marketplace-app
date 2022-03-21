@@ -4,37 +4,48 @@ import { Picker } from "@react-native-picker/picker";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-
-import { useMutation } from "react-query";
-// import { useLocation } from "../hooks/useLocation";
+import { useMutation, useQueryClient } from "react-query";
+import apiClient from "../api/client";
+import { useLocation } from "../hooks/useLocation";
 import { AppButton, AppTextInput, ErrorMessage, ImagePickerList, Screen } from "../components";
 
 const schema = z.object({
     title: z.string().min(1, { message: "Title is Required" }),
     price: z.string() /* .positive(), */,
     category: z.string().min(1, { message: "Category is Required" }),
+    // images: z.array(z.object()).nonempty({ message: "At least one image is required" }),
     images: z.array(z.string()).nonempty({ message: "At least one image is required" }),
+    description: z.string().optional(),
 });
 
 export const ListingEditScreen = () => {
-    // const location = useLocation();
+    const location = useLocation();
+    // const queryClient = useQueryClient();
+
     const { mutate } = useMutation(
         (data) =>
-            fetch("http://localhost:3000/api/products", {
-                method: "POST",
-                headers: new Headers({
+            apiClient.post("/products", data, {
+                headers: {
                     Authorization:
-                        "Bearer " +
-                        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJqb2FueS5lbHRvbkBleGFtcGxlLmNvbSIsIm5hbWUiOiJKb2FueSBFbHRvbiIsImlhdCI6MTY0Njc3OTY3NX0.esYrZ8hj9ISPH4h3hxUA4ONkceKyEWc8_NeON5KSgtM",
-                    "Content-Type": "application/json",
-                }),
-                body: JSON.stringify(data),
-            }).then((res) => res.json()),
+                        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MiwiZW1haWwiOiJqb2FueS5lbHRvbkBleGFtcGxlLmNvbSIsIm5hbWUiOiJKb2FueSBFbHRvbiIsImlhdCI6MTY0Nzc5NTEyOX0.kGJ0MvpNBb7-i7c_lo_Dh5mMWRh08idrF7x4gfrP_Us",
+                    "Content-Type": "multipart/form-data",
+                },
+                transformRequest: () =>
+                    // !!! override data to return formData since axios converts that to string
+                    data,
+            }),
+
         {
             onSuccess: (res) => {
                 console.log(res, "res success");
+                // queryClient.invalidateQueries("lists");
+            },
+            onError: (err) => {
+                console.log(err, "res err");
             },
         }
+
+        // .then((res) => res.json()),,
     );
     // console.log(location, "location");
 
@@ -49,15 +60,24 @@ export const ListingEditScreen = () => {
             price: "",
             category: "",
             images: [],
+            description: "",
         },
         // mode: "onChange",
     });
-
     const onSubmit = (data) => {
-        mutate(data);
-    };
+        const formData = new FormData();
+        formData.append("title", data.title);
+        formData.append("price", data.price);
+        formData.append("category", data.category);
+        formData.append("description", data.description);
+        data.images.forEach((image) => {
+            const filename = image.split("/").pop();
+            formData.append("images", { uri: image, name: filename, type: "image/jpg" });
+        });
+        if (location) formData.append("location", JSON.stringify(location));
 
-    // console.log(location, "location");
+        mutate(formData);
+    };
 
     return (
         <Screen style={styles.container}>
@@ -70,9 +90,6 @@ export const ListingEditScreen = () => {
 
             <Controller
                 control={control}
-                rules={{
-                    required: true,
-                }}
                 render={({ field: { onChange, onBlur, value } }) => (
                     <AppTextInput placeholder="Title" onChangeText={onChange} onBlur={onBlur} value={value} autoFocus />
                 )}
@@ -82,9 +99,6 @@ export const ListingEditScreen = () => {
 
             <Controller
                 control={control}
-                rules={{
-                    required: true,
-                }}
                 render={({ field: { onChange, value } }) => (
                     <AppTextInput
                         style={styles.price}
@@ -101,9 +115,6 @@ export const ListingEditScreen = () => {
 
             <Controller
                 control={control}
-                rules={{
-                    required: true,
-                }}
                 render={({ field: { onChange, value } }) => (
                     <Picker
                         // itemStyle={{ color: "red" }}
@@ -125,7 +136,19 @@ export const ListingEditScreen = () => {
             />
             <ErrorMessage error={errors.category?.message} visible />
 
-            <AppTextInput placeholder="Descripton" />
+            <Controller
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                    <AppTextInput
+                        placeholder="Descripton"
+                        onChangeText={onChange}
+                        value={value}
+                        // type="number"
+                        // keyboardType="numeric"
+                    />
+                )}
+                name="description"
+            />
 
             <AppButton title="POST" onPress={handleSubmit(onSubmit)} />
         </Screen>

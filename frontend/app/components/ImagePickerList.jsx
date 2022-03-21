@@ -12,7 +12,6 @@ export const ImagePickerList = ({ images, setImages }) => {
             aspect: [4, 3],
             quality: 1,
         });
-
         if (!result.cancelled) {
             // setImages((prevImages) => [...prevImages, result.uri]);
             setImages([...images, result.uri]);

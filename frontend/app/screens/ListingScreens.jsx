@@ -4,8 +4,9 @@ import { StyleSheet, FlatList } from "react-native";
 import { useQuery } from "react-query";
 import { Screen, Card } from "../components";
 import colors from "../config/colors";
-import { jacket, mosh, couch } from "../assets/icons";
+import /* {jacket, mosh, couch} */ "../assets/icons";
 import { LISTING_DETAILS } from "../config/routes";
+import apiClient from "../api/client";
 
 // const listings = [
 //     {
@@ -30,26 +31,24 @@ import { LISTING_DETAILS } from "../config/routes";
 
 /* <LottieView autoPlay loop source={require("../assets/animations/loading.json")} speed={2} /> */
 
-export const ListingScreens = ({ navigation }) => {
-    const { data } = useQuery(["lists"], () => fetch("http://localhost:3000/api/products").then((res) => res.json()));
-    console.log(data, "data listing screen");
-    return (
-        <Screen style={styles.screen}>
-            <FlatList
+export const ListingScreens = ({ navigation }) => (
+    // const { data } = useQuery(["lists"], () => apiClient.get("/products").then((response) => response.data));
+    // console.log(data, "data listing screen");
+    <Screen style={styles.screen}>
+        {/* <FlatList
                 data={data}
                 keyExtractor={(listItem) => listItem.id.toString()}
                 renderItem={({ item }) => (
                     <Card
                         title={item.title}
                         subTitle={`$${item.price}`}
-                        image={item.image}
+                        image={item.images}
                         onPress={() => navigation.navigate(LISTING_DETAILS, item)}
                     />
                 )}
-            />
-        </Screen>
-    );
-};
+            /> */}
+    </Screen>
+);
 
 const styles = StyleSheet.create({
     screen: {

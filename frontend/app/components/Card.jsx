@@ -7,7 +7,11 @@ import { AppText } from "./AppText";
 export const Card = ({ title, subTitle, image, onPress }) => (
     <TouchableWithoutFeedback onPress={onPress}>
         <View style={styles.card}>
-            <Image style={styles.image} source={image} />
+            {/* {console.log(image[0].split("file://")[1], "image")} */}
+            <Image
+                style={styles.image}
+                source={{ uri: "http://localhost:3000/public/87864584_240816576943803_3498201023791497216_n.jpeg" }}
+            />
             <View style={styles.detailsContainer}>
                 <AppText style={styles.title}>{title}</AppText>
                 <AppText style={styles.subTitle}>{subTitle}</AppText>

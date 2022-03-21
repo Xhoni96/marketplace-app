@@ -7,6 +7,7 @@ const productInput = {
     description: z.string().optional(),
     images: z.array(z.string()),
     category: z.string(),
+    location: z.object({}),
 };
 
 const productGenerated = {
